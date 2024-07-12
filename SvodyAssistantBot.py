@@ -1,8 +1,5 @@
 import telebot
 import config
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
 
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
