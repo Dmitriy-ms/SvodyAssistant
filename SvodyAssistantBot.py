@@ -28,6 +28,7 @@ get_all_kop = None  # Глобальная переменная для хран�
 
 request_data = requestsData.request_data
 request_period_data = requestsData.request_period_data
+#
 
 def post_request(url: str, request, session):
     """
