@@ -26,8 +26,8 @@ rootSession = None
 selected_kops = []
 get_all_kop = None  # Глобальная переменная для хранения данных КОП
 
-request_data = requestsData.request_data
-request_period_data = requestsData.request_period_data
+request_get_all_periods = requestsData.request_get_all_periods
+request_get_all_components_period = requestsData.request_get_all_components_period
 #
 
 def post_request(url: str, request, session):
@@ -83,12 +83,12 @@ def start(message):
     :param message:
     :return:
     '''
-    global rootSession, request_data
+    global rootSession, request_get_all_periods
     if rootSession is None:
         bot.send_message(message.chat.id, 'Сначала выполните команду /login')
         return
 
-    data_get_all_period = post_request(data_url, request_data, rootSession)
+    data_get_all_period = post_request(data_url, request_get_all_periods, rootSession)
 
     if isinstance(data_get_all_period, dict) and 'result' in data_get_all_period and 'data' in data_get_all_period['result']:
         markup = InlineKeyboardMarkup()
@@ -101,10 +101,10 @@ def start(message):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("period_"))
 def handle_period_callback(call):
-    global rootSession, result_id, request_period_data, get_all_kop, request_data
+    global rootSession, result_id, request_get_all_components_period, get_all_kop, request_get_all_periods
     period_code = call.data.split("_")[1]
 
-    data_get_all_period = post_request(data_url, request_data, rootSession)
+    data_get_all_period = post_request(data_url, request_get_all_periods, rootSession)
     result_id = None
 
     for item in data_get_all_period['result']["data"]:
@@ -115,9 +115,9 @@ def handle_period_callback(call):
     if result_id:
         bot.send_message(call.message.chat.id, f"The id with Code '{period_code}' is: {result_id}")
 
-        request_period_data['data'][0]['reportPeriodId'] = result_id
+        request_get_all_components_period['data'][0]['reportPeriodId'] = result_id
 
-        get_all_kop = post_request(data_url, request_period_data, rootSession)
+        get_all_kop = post_request(data_url, request_get_all_components_period, rootSession)
 
         if isinstance(get_all_kop, dict) and 'result' in get_all_kop and 'data' in get_all_kop['result']:
             markup = InlineKeyboardMarkup()

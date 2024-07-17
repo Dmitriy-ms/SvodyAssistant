@@ -1,5 +1,5 @@
 # Запрос данных для получения списка отчетных периодов (тело запроса)
-request_data = {
+request_get_all_periods = {
     "action": "ReportPeriod",
     "method": "GetPageAsync",
     "data": [
@@ -26,7 +26,7 @@ request_data = {
 }
 
 # Запрос данных для получения списка КОП (тело запроса)
-request_period_data = {
+request_get_all_components_period = {
     "action": "ReportPeriod",
     "method": "GetReportPeriodComponentsPage",
     "data": [{
@@ -46,3 +46,4 @@ request_period_data = {
     "type": "rpc",
     "tid": 34
 }
+
