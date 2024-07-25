@@ -1,3 +1,5 @@
+import pickle
+
 import telebot
 import config
 from datetime import datetime
@@ -62,6 +64,9 @@ def write_response_json(file_name: str, response_svody):
         json.dump(response_svody, f, ensure_ascii=False, indent=4)
     print(f"В файл {file_name} ответ от Сводов записан")
 
+def save_session(session, filename='session.pkl'):
+    with open(filename, 'wb') as file:
+        pickle.dump(session, file)
 
 @bot.message_handler(commands=['login'])
 def login(message):
@@ -77,6 +82,7 @@ def login(message):
         session.post(login_url, data=login_data,
                      verify=False)  # Отправляем данные в POST, в session записываются наши куки
         rootSession = session
+        save_session(session)
         # Сообщаем пользователю, что сессия создана
         bot.send_message(message.chat.id, 'Сессия создана')
 
@@ -84,6 +90,15 @@ def login(message):
         # cookies_info = "\n".join([f"{k}: {v}" for k, v in session.cookies.items()])
         # bot.send_message(message.chat.id, f'Куки сессии:\n{cookies_info}')
 
+
+def load_session(filename='session.pkl'):
+    try:
+        with open(filename, 'rb') as file:
+            return pickle.load(file)
+    except FileNotFoundError:
+        return None
+
+rootSession = load_session()
 
 # @bot.message_handler(commands=['start'])
 # def start(message):
@@ -115,6 +130,7 @@ def start(message):
     :param message:
     :return:
     '''
+
     global rootSession, request_get_all_periods
     if rootSession is None:
         bot.send_message(message.chat.id, 'Сначала выполните команду /login')
@@ -147,7 +163,7 @@ def add_time_to_date(date_str, days=0, months=0, year=0):
     # Преобразуем строку в объект даты
     date_obj = datetime.fromisoformat(date_str)
     # Добавляем дни, месяцы и года
-    new_date_obj = date_obj+relativedelta(days=days, months=months, year=year)
+    new_date_obj = date_obj+relativedelta(days=days, months=months, years=year)
     # Преобразуем обратно в строку в формате ISO 8601
     new_date_str = new_date_obj.isoformat()
     return new_date_str
@@ -197,9 +213,30 @@ def copy_period_callback(call):
 
     request_get_period[0]["data"][0] = result_id
 
+    #Меняем название скопированного отчетного периода и дату начала и окончания
     response_get_period = post_request(data_url,request_get_period,rootSession)[0]["result"]["data"]
+    response_get_period["SubReportPeriodBeginDate"] = response_get_period["BeginDate"]
+    response_get_period["SubReportPeriodEndDate"] = response_get_period["EndDate"]
+    if(response_get_period["ReportPeriodType"] == 0):
+        response_get_period["BeginDate"] = add_time_to_date(response_get_period["BeginDate"], year=1)
+        response_get_period["EndDate"] = add_time_to_date(response_get_period["BeginDate"], year=1)
+    elif(response_get_period["ReportPeriodType"] == 1):
+        response_get_period["BeginDate"] = add_time_to_date(response_get_period["BeginDate"], months=6)
+        response_get_period["EndDate"] = add_time_to_date(response_get_period["BeginDate"], months=6)
+    elif(response_get_period["ReportPeriodType"] == 2):
+            response_get_period["BeginDate"] = add_time_to_date(response_get_period["BeginDate"], months=3)
+            response_get_period["EndDate"] = add_time_to_date(response_get_period["BeginDate"], months=3)
+    elif(response_get_period["ReportPeriodType"] == 3):
+            response_get_period["BeginDate"] = add_time_to_date(response_get_period["BeginDate"], months=1)
+            response_get_period["EndDate"] = add_time_to_date(response_get_period["BeginDate"], months=1)
+    elif(response_get_period["ReportPeriodType"] == 4):
+            response_get_period["BeginDate"] = add_time_to_date(response_get_period["BeginDate"], days=7)
+            response_get_period["EndDate"] = add_time_to_date(response_get_period["BeginDate"], days=7)
 
-    startDate = response_get_period["BeginDate"]
+    response_get_period["Code"] = response_get_period["Code"].split("_")[0] +"_" + format_date(response_get_period["BeginDate"])
+    response_get_period["Name"] = response_get_period["Code"]
+
+
 
     data_get_all_period = post_request(data_url, request_get_all_periods, rootSession)
 
