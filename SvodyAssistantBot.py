@@ -1,5 +1,7 @@
 import telebot
 import config
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -132,6 +134,23 @@ def start(message):
     else:
         bot.send_message(message.chat.id, f'Ошибка получения данных ОП: {data_get_all_period}')
 
+# Функция для изменения даты
+def add_time_to_date(date_str, days=0, months=0, year=0):
+    '''
+
+    :param date_str:
+    :param days:
+    :param months:
+    :param year:
+    :return: new_date_str
+    '''
+    # Преобразуем строку в объект даты
+    date_obj = datetime.fromisoformat(date_str)
+    # Добавляем дни, месяцы и года
+    new_date_obj = date_obj+relativedelta(days=days, months=months, year=year)
+    # Преобразуем обратно в строку в формате ISO 8601
+    new_date_str = new_date_obj.isoformat()
+    return new_date_str
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("copy_"))
 def copy_period_callback(call):
@@ -163,9 +182,11 @@ def copy_period_callback(call):
          "RPComponentList": items_kop, "Disabled": True}], "type": "rpc", "tid": 78}
     post_request(data_url,request_copy_period,rootSession)
 
+    request_get_period[0]["data"][0] = result_id
 
+    response_get_period = post_request(data_url,request_get_period,rootSession)[0]["result"]["data"]
 
-
+    startDate = response_get_period["BeginDate"]
 
     data_get_all_period = post_request(data_url, request_get_all_periods, rootSession)
 

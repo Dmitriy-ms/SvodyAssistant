@@ -83,7 +83,7 @@ request_get_period = [
     "action": "ReportPeriod",
     "method": "Load",
     "data": [
-      "{idPeriod}",
+      "",
       {
         "profiles": [
           "00000000-0000-0000-0000-000000000000"
