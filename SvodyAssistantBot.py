@@ -152,6 +152,19 @@ def add_time_to_date(date_str, days=0, months=0, year=0):
     new_date_str = new_date_obj.isoformat()
     return new_date_str
 
+#Функция для преобразовани даты
+def format_date(date_str):
+    '''
+    :param date_str:
+    :return: formatted_date
+    '''
+    # Преобразуем строку в объект даты
+    date_obj = datetime.fromisoformat(date_str)
+    # Форматируем дату в "dd-MM-yyy"
+    formatted_date = date_obj.strftime("%d-%m-%Y")
+    return formatted_date
+
+# Функция копирования отчетного периода
 @bot.callback_query_handler(func=lambda call: call.data.startswith("copy_"))
 def copy_period_callback(call):
     global rootSession, request_get_all_periods
